@@ -14,6 +14,9 @@ addons:
             - libxinerama-dev 
             - libxcursor-dev 
             - mesa-utils
+            - libgl1-mesa-swx11
+            - libgl1-mesa-swx11-dev
+            - xvfb
 
 julia:
   - 1.0
