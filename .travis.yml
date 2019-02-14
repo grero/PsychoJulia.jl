@@ -4,7 +4,7 @@ os:
   - linux
   - osx
 dist: trusty
-sudo: false
+sudo: true
 addons:
     apt:
         packages:
@@ -20,8 +20,6 @@ julia:
   - nightly
 notifications:
   email: false
-git:
-  depth: 99999999
 
 ## uncomment the following lines to allow failures on nightly julia
 ## (tests will run but not make your overall status red)
