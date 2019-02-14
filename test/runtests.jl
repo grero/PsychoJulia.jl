@@ -19,6 +19,7 @@ using Test
     done = false
     record = PsychoJulia.ExperimentRecord()
     ntrials = 0
+    #basic experiment cycling through two correct trials
     PsychoJulia.reset!(fstate.clock)
     while !done
         state = trans.states[trans.current]
