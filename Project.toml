@@ -1,0 +1,13 @@
+name = "PsychoJulia"
+uuid = "e9a62678-3012-11e9-10d0-dbdb3e8484d6"
+authors = ["roger <roger.herikstad@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
+GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+GeometryTypes = "4d00f742-c7ba-57c2-abde-4428a4b178cb"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
