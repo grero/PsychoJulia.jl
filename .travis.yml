@@ -9,6 +9,11 @@ addons:
     apt:
         packages:
             - xorg-dev
+            - cmake 
+            - libxrandr-dev 
+            - libxinerama-dev 
+            - libxcursor-dev 
+            - mesa-utils
 
 julia:
   - 1.0
