@@ -24,10 +24,10 @@ mutable struct TrialEndState <: TrialState
     clock::ClockTimer
 end
 
-mutable struct StateTransitions
+mutable struct StateTransitions{T}
     states::Vector{TrialState}
-    edges::Matrix{Int64}
-    current::Int64
+    edges::Matrix{T}
+    current::T
 end
 
 mutable struct ExperimentRecord
@@ -38,7 +38,7 @@ end
 
 ExperimentRecord() = ExperimentRecord(Clock(), Float64[], String[])
 
-function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
+function next!(tt::StateTransitions{T},engaged::Bool, record::ExperimentRecord) where T
     nn = tt.current 
     if engaged
         nn = tt.edges[1,tt.current]
@@ -50,7 +50,13 @@ function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
     push!(record.timestamp, t1)
     push!(record.event, "$(tt.current) -> $(nn)")
     #make sure we reset the clock
-    reset!(tt.states[nn].clock)
+    for _nn in nn
+        if _nn in tt.current
+            continue
+        end
+        #only reset clocks for state that actually transition
+        reset!(tt.states[_nn].clock)
+    end
     tt.current = nn
     tt.current
 end
@@ -67,9 +73,14 @@ function set_position!(state::TrialState, pos::Point2f0)
 end
 set_position!(state::TrialEndState,pos::Point2f0) = nothing
 
-function next!(transitions::StateTransitions, record::ExperimentRecord)
-    state = transitions.states[transitions.current]
-    b = check_state(state)
+function next!(transitions::StateTransitions{T}, record::ExperimentRecord) where T
+    states = transitions.states[transitions.current]
+    if isa(states, TrialState)
+        b = check_state(states)
+    else
+        #grab the highest b, i.e. if any state failed, they all failed
+        b = maximum([check_state(state) for state in states])
+    end
     #check if we are transitioning and if so to which state
     if b == 1
         next!(transitions, true, record)
