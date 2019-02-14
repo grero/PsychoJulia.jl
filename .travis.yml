@@ -1,41 +1,51 @@
-## Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 os:
   - linux
   - osx
-dist: trusty
-sudo: true
-addons:
-    apt:
-        packages:
-            - xorg-dev
-            - cmake 
-            - libxrandr-dev 
-            - libxinerama-dev 
-            - libxcursor-dev 
-            - mesa-utils
-            - libosmesa6
-            - libosmesa6-dev
-            - xvfb
-
 julia:
+  - 0.7
   - 1.0
-  - nightly
+  - release
+
 notifications:
   email: false
+sudo: required
+dist: trusty
+addons:
+  apt:
+     packages:
+        - libglew-dev
+        - freeglut3-dev
+        - libxi-dev
+        - libxmu-dev
+        - xserver-xorg-video-dummy
+        - xpra
+        - xorg-dev
+        - opencl-headers
+        - libgl1-mesa-dev
+        - libxcursor-dev
+        - libpulse-dev
+        - libxinerama-dev
+        - libxrandr-dev
+        - libxv-dev
+        - libasound2-dev
+        - libudev-dev
+        - mesa-utils
+        - libgl1-mesa-glx
+before_install:
+  - sudo add-apt-repository -y ppa:oibaf/graphics-drivers
+  - sudo apt-get update -qq -y
+  - export DEBIAN_FRONTEND=noninteractive
+  - sudo apt-get -yq --force-yes install libgl1-mesa-dev libgl1-mesa-glx mesa-common-dev libglapi-mesa libgbm1 libgl1-mesa-dri libxatracker-dev xvfb
+before_script:
+  - export DISPLAY=:99
+  - export LIBGL_ALWAYS_SOFTWARE=1
+  - xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/test/dummy.xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99
+  - sleep 3 
+  - LIBGL_ALWAYS_SOFTWARE=1 glxinfo
+  - glxinfo
+  - cat ${HOME}/.xpra/xorg.log
 
-## uncomment the following lines to allow failures on nightly julia
-## (tests will run but not make your overall status red)
-matrix:
-  allow_failures:
-  - julia: nightly
+after_sucess:
+  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
 
-before_install: # homebrew for mac
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1400x900x24 -ac +extension GLX +extension RENDER"; fi
-
-## uncomment the following lines to override the default test script
-#script:
-#  - julia -e 'Pkg.clone(pwd()); Pkg.add("MAT"); Pkg.build("PopulationDynamics"); Pkg.test("PopulationDynamics"; coverage=true)'
-after_success:
-  # push coverage results to Coveralls
-    - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
