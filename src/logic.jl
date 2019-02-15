@@ -106,6 +106,15 @@ function check_state(state::Union{FixationState,ResponseState})
     b
 end
 
+function check_state(state::TargetState)
+    b = 0
+    #passive state for now
+    if is_done!(state.clock)
+        b = 1
+    end
+    b
+end
+
 function check_state(state::TrialEndState)
     b = 0
     if is_done!(state.clock)
