@@ -24,10 +24,11 @@ mutable struct TrialEndState <: TrialState
     clock::ClockTimer
 end
 
-mutable struct StateTransitions{T}
+mutable struct StateTransitions
     states::Vector{TrialState}
-    edges::Matrix{T}
-    current::T
+    combos::Vector{Vector{Int64}}
+    edges::Matrix{Int64}
+    current::Int64
 end
 
 mutable struct ExperimentRecord
@@ -38,7 +39,7 @@ end
 
 ExperimentRecord() = ExperimentRecord(Clock(), Float64[], String[])
 
-function next!(tt::StateTransitions{T},engaged::Bool, record::ExperimentRecord) where T
+function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
     nn = tt.current 
     if engaged
         nn = tt.edges[1,tt.current]
@@ -50,12 +51,12 @@ function next!(tt::StateTransitions{T},engaged::Bool, record::ExperimentRecord) 
     push!(record.timestamp, t1)
     push!(record.event, "$(tt.current) -> $(nn)")
     #make sure we reset the clock
-    for _nn in nn
-        if _nn in tt.current
+    for _ii in tt.combos[nn]
+        if _ii in tt.combos[tt.current]
             continue
         end
         #only reset clocks for state that actually transition
-        reset!(tt.states[_nn].clock)
+        reset!(tt.states[_ii].clock)
     end
     tt.current = nn
     tt.current
@@ -73,8 +74,8 @@ function set_position!(state::TrialState, pos::Point2f0)
 end
 set_position!(state::TrialEndState,pos::Point2f0) = nothing
 
-function next!(transitions::StateTransitions{T}, record::ExperimentRecord) where T
-    states = transitions.states[transitions.current]
+function next!(transitions::StateTransitions, record::ExperimentRecord)
+    states = transitions.states[transitions.combos[transitions.current]]
     if isa(states, TrialState)
         b = check_state(states)
     else
