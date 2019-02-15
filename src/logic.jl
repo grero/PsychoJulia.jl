@@ -14,6 +14,11 @@ mutable struct TargetState <: TrialState
     current_pos::Point2f0
 end
 
+mutable struct DistractorState <: TrialState
+    area::Rectangle
+    clock::ClockTimer
+end
+
 mutable struct ResponseState <: TrialState
     area::Rectangle
     clock::ClockTimer
