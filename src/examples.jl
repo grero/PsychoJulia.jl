@@ -26,6 +26,11 @@ function basic_fixation()
     #TODO: This should use screen instead
     display(screen.scene)
     glscreen = GLMakie.global_gl_screen()
+    function close_screen()
+        #reset the render loop
+        GLMakie.opengl_renderloop[] = GLMakie.renderloop
+        GLFW.DestroyWindow(GLMakie.to_native(glscreen))
+    end
     GLMakie.opengl_renderloop[] = (screen)->nothing 
     PsychoJulia.reset!(fstate.clock)
     while !done
@@ -45,9 +50,7 @@ function basic_fixation()
         GLFW.SwapBuffers(GLMakie.to_native(glscreen))
         glFinish()
     end
-    #reset the render loop
-    GLMakie.opengl_renderloop[] = GLMakie.renderloop
-    GLMakie.destroy!(glscreen)
+    close_screen()
 
     #check that we get the correct timestamps to whitin 1ms precision
     record
