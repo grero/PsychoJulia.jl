@@ -31,10 +31,13 @@ end
 
 mutable struct StateTransitions
     states::Vector{TrialState}
+    shapes::Vector{Int64}
     combos::Vector{Vector{Int64}}
     edges::Matrix{Int64}
     current::Int64
 end
+
+StateTransitions(states, combos, edges, current) = StateTransitions(states, fill(-1, length(states)), combos, edges, current)
 
 mutable struct ExperimentRecord
     clock::Clock
@@ -44,7 +47,7 @@ end
 
 ExperimentRecord() = ExperimentRecord(Clock(), Float64[], String[])
 
-function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
+function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord, scene)
     nn = tt.current 
     if engaged
         nn = tt.edges[1,tt.current]
@@ -55,8 +58,19 @@ function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
     t1 = get_time(record.clock)
     push!(record.timestamp, t1)
     push!(record.event, "$(tt.current) -> $(nn)")
+    #turn off shapes for previous states
+    for _ii in tt.combos[tt.current]
+        if tt.shapes[_ii] == -1
+            continue
+        end
+        push!(scene[tt.shapes[_ii]][:visible], false)
+    end
+
     #make sure we reset the clock
     for _ii in tt.combos[nn]
+        if tt.shapes[_ii] >= 0
+            push!(scene[tt.shapes[_ii]][:visible], true)
+        end
         if _ii in tt.combos[tt.current]
             continue
         end
@@ -79,7 +93,7 @@ function set_position!(state::TrialState, pos::Point2f0)
 end
 set_position!(state::TrialEndState,pos::Point2f0) = nothing
 
-function next!(transitions::StateTransitions, record::ExperimentRecord)
+function next!(transitions::StateTransitions, record::ExperimentRecord, scene)
     states = transitions.states[transitions.combos[transitions.current]]
     if isa(states, TrialState)
         b = check_state(states)
@@ -89,9 +103,9 @@ function next!(transitions::StateTransitions, record::ExperimentRecord)
     end
     #check if we are transitioning and if so to which state
     if b == 1
-        next!(transitions, true, record)
+        next!(transitions, true, record, scene)
     elseif b == 2
-        next!(transitions, false, record)
+        next!(transitions, false, record, scene)
     end
     nothing
 end
