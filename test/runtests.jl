@@ -45,7 +45,9 @@ using Test
     @testset "Joint states" begin
         tstate = PsychoJulia.TargetState(Rectangle(-50,-50, 20,20),
                                          PsychoJulia.ClockTimer(time(),1.0, false), Point2f0(0.0, 0.0))
-        trans = PsychoJulia.StateTransitions([fstate, tstate, rstate, estate], [[1],[1,2],[3],[4]], [2 3 4 1;4 4 4 4],1)
+        fstate2 = deepcopy(fstate)
+        PsychoJulia.set_endtime!(fstate2.clock, 6.0)
+        trans = PsychoJulia.StateTransitions([fstate, fstate2, tstate, rstate, estate], [[1],[2,3],[4],[5]], [2 3 4 1;4 4 4 1],1)
         done = false
         record = PsychoJulia.ExperimentRecord()
         ntrials = 0
@@ -65,5 +67,7 @@ using Test
             done = ntrials >= 2
         end
         @show record
+        @test record.event == ["1 -> 2", "2 -> 3", "3 -> 4", "4 -> 1", "1 -> 2", "2 -> 3", "3 -> 4"]
+        @test record.timestamp ≈ [5.000, 6.000, 11.000, 16.000, 21.000, 22.000, 27.000] atol =0.001
     end
 end
