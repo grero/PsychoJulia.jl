@@ -29,9 +29,9 @@ function basic_fixation()
     function close_screen()
         #reset the render loop
         GLMakie.opengl_renderloop[] = GLMakie.renderloop
-        GLFW.DestroyWindow(GLMakie.to_native(glscreen))
+        GLMakie.destroy!(GLMakie.to_native(glscreen))
     end
-    GLMakie.opengl_renderloop[] = (screen)->nothing 
+    GLMakie.opengl_renderloop[] = (screen)->nothing
     PsychoJulia.reset!(fstate.clock)
     while !done
         GLFW.PollEvents()
