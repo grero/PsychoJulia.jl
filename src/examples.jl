@@ -35,6 +35,11 @@ function basic_fixation()
     PsychoJulia.reset!(fstate.clock)
     while !done
         GLFW.PollEvents()
+        #check for keys
+        key_pressed = false
+        if key_pressed
+           done = true
+        end
         state = trans.states[trans.current]
         aa = PsychoJulia.get_area(state)
         PsychoJulia.set_position!(state,Point2f0(aa.x + 1.0, aa.y+1.0))
@@ -45,7 +50,7 @@ function basic_fixation()
                 ntrials += 1
             end
         end
-        done = ntrials >= 10
+        done = done | ntrials >= 10
         GLMakie.render_frame(glscreen)
         GLFW.SwapBuffers(GLMakie.to_native(glscreen))
         glFinish()
