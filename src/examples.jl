@@ -36,7 +36,7 @@ function basic_fixation()
     while !done
         GLFW.PollEvents()
         #check for keys
-        key_pressed = false
+        key_pressed = ispressed(screen.scene, Keyboard.escape)
         if key_pressed
            done = true
         end
@@ -50,7 +50,7 @@ function basic_fixation()
                 ntrials += 1
             end
         end
-        done = done | ntrials >= 10
+        done = done || ntrials >= 10
         GLMakie.render_frame(glscreen)
         GLFW.SwapBuffers(GLMakie.to_native(glscreen))
         glFinish()
