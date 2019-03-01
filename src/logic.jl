@@ -14,6 +14,11 @@ mutable struct TargetState <: TrialState
     current_pos::Point2f0
 end
 
+mutable struct DistractorState <: TrialState
+    area::Rectangle
+    clock::ClockTimer
+end
+
 mutable struct ResponseState <: TrialState
     area::Rectangle
     clock::ClockTimer
@@ -26,9 +31,13 @@ end
 
 mutable struct StateTransitions
     states::Vector{TrialState}
+    shapes::Vector{Int64}
+    combos::Vector{Vector{Int64}}
     edges::Matrix{Int64}
     current::Int64
 end
+
+StateTransitions(states, combos, edges, current) = StateTransitions(states, fill(-1, length(states)), combos, edges, current)
 
 mutable struct ExperimentRecord
     clock::Clock
@@ -38,7 +47,7 @@ end
 
 ExperimentRecord() = ExperimentRecord(Clock(), Float64[], String[])
 
-function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
+function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord, scene)
     nn = tt.current 
     if engaged
         nn = tt.edges[1,tt.current]
@@ -49,8 +58,25 @@ function next!(tt::StateTransitions,engaged::Bool, record::ExperimentRecord)
     t1 = get_time(record.clock)
     push!(record.timestamp, t1)
     push!(record.event, "$(tt.current) -> $(nn)")
+    #turn off shapes for previous states
+    for _ii in tt.combos[tt.current]
+        if tt.shapes[_ii] == -1
+            continue
+        end
+        push!(scene[tt.shapes[_ii]][:visible], false)
+    end
+
     #make sure we reset the clock
-    reset!(tt.states[nn].clock)
+    for _ii in tt.combos[nn]
+        if tt.shapes[_ii] >= 0
+            push!(scene[tt.shapes[_ii]][:visible], true)
+        end
+        if _ii in tt.combos[tt.current]
+            continue
+        end
+        #only reset clocks for state that actually transition
+        reset!(tt.states[_ii].clock)
+    end
     tt.current = nn
     tt.current
 end
@@ -67,14 +93,19 @@ function set_position!(state::TrialState, pos::Point2f0)
 end
 set_position!(state::TrialEndState,pos::Point2f0) = nothing
 
-function next!(transitions::StateTransitions, record::ExperimentRecord)
-    state = transitions.states[transitions.current]
-    b = check_state(state)
+function next!(transitions::StateTransitions, record::ExperimentRecord, scene)
+    states = transitions.states[transitions.combos[transitions.current]]
+    if isa(states, TrialState)
+        b = check_state(states)
+    else
+        #grab the highest b, i.e. if any state failed, they all failed
+        b = maximum([check_state(state) for state in states])
+    end
     #check if we are transitioning and if so to which state
     if b == 1
-        next!(transitions, true, record)
+        next!(transitions, true, record, scene)
     elseif b == 2
-        next!(transitions, false, record)
+        next!(transitions, false, record, scene)
     end
     nothing
 end
@@ -90,6 +121,15 @@ function check_state(state::Union{FixationState,ResponseState})
         end
     else
         b = 2
+    end
+    b
+end
+
+function check_state(state::TargetState)
+    b = 0
+    #passive state for now
+    if is_done!(state.clock)
+        b = 1
     end
     b
 end
