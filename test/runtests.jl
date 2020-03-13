@@ -3,6 +3,18 @@ using GeometryTypes
 using Random
 using Test
 
+@testset "Units" begin
+    screen = PsychoJulia.Visual.get_screen((800,600), 570.0)
+    widths = PsychoJulia.Visual.get_widths(screen)
+    @show widths
+    resolution = PsychoJulia.Visual.get_resolution(screen)
+    @show resolution
+    xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=true)
+    @show xy
+    xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=false)
+    @show xy
+end
+
 @testset "States" begin
     fstate = PsychoJulia.FixationState(Rectangle(-10,-10,20,20),
                                        PsychoJulia.ClockTimer(time(), 5.0, false),Point2f0(0.0, 0.0))
