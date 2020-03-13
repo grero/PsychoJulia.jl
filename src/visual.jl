@@ -3,21 +3,58 @@ using GLFW
 using Makie
 using GeometryTypes
 
-struct PsychoScreen
+struct FakeMonitor
+    distance::Float64
+    resolution::Vec{2, Int64}
+    widths::Vec{2, Float64}
+end
+
+get_physical_size(m::FakeMonitor) = m.widths
+get_resolution(m::FakeMonitor) = m.resolution
+
+get_physical_size(m::GLFW.Monitor) = GLFW.GetMonitorPhysicalSize(m)
+get_resolution(m::GLFW.Monitor) = (vm = GLFW.GetVideoMode(m); Vec{2,Int64}([vm.width,vm.height]))
+
+PsychoMonitor = Union{GLFW.Monitor, FakeMonitor}
+
+struct PsychoScreen{T<:PsychoMonitor}
     scene
-    monitor::GLFW.Monitor
+    monitor::T
     distance::Float64
 end
 
 PsychoSreen(scene, distance::Float64) = PsychoScreen(scene, GLFW.GetPrimaryMonitor(), distance)
 
-function px2deg(screen::PsychoScreen, px)
-    widths = GLFW.GetMonitorPhysicalSize(screen.monitor)
-    r = sqrt(widths[1]^2 + widths[2]^2)
-    dg = r/screen.distance
-    vm = GLFW.GetVideoMode(screen.monitor)
-    dpx = sqrt(vm.height^2 + vm.width^2)
-    px*dg/dpx
+get_widths(screen::PsychoScreen) = GLFW.GetMonitorPhysicalSize(screen.monitor)
+get_resolution(screen::PsychoScreen) = GLFW.GetVideoMode(screen.monitor)
+
+function mm2px(screen::PsychoScreen{T}, xy::Tuple{Float64, Float64}) where T <: PsychoMonitor
+    widths = get_physical_size(screen.monitor)
+    vm = get_resolution(screen.monitor)
+    (xy[1]*vm[1]/widths[1], xy[2]*vm[2]/widths[2])
+end
+
+function deg2mm(screen::PsychoScreen{T}, deg::Vec{2,T2}; correctflat=false) where T2 <: Real where T <: PsychoMonitor
+    d = screen.distance
+    θ = deg2rad.(deg)
+    if correctflat
+        x = d*tan(θ[1])
+        y = d*tan(θ[2])
+        hy = sqrt(d*d + x*x)
+        hx = sqrt(d*d + y*y)
+        y = hy*tan(θ[2])
+        x = hx*tan(θ[1])
+        xy = Vec(x,y)
+    else
+        xy = θ.*d
+        #xy = deg.*d*0.017453292519943295
+    end
+    xy
+end
+
+function deg2px(screen::PsychoScreen{T}, deg::Vec{2,T2};kvs...) where T2 <: Real where T <: PsychoMonitor
+    x,y = deg2mm(screen,deg;kvs...)
+    mm2px(screen, (x,y))
 end
 
 function get_screen(resolution, distance, monitor=GLFW.GetPrimaryMonitor())
