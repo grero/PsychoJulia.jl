@@ -4,7 +4,6 @@ using Makie
 using GeometryTypes
 
 struct FakeMonitor
-    distance::Float64
     resolution::Vec{2, Int64}
     widths::Vec{2, Float64}
 end
