@@ -4,15 +4,18 @@ using Random
 using Test
 
 @testset "Units" begin
-    screen = PsychoJulia.Visual.get_screen((800,600), 570.0)
+    fake_monitor = PsychoJulia.Visual.FakeMonitor(Vec(1440,900), (285.0, 179.0)) 
+    screen = PsychoJulia.Visual.get_screen((800,600), 570.0, fake_monitor)
     widths = PsychoJulia.Visual.get_widths(screen)
-    @show widths
+    @test widths ≈ Point2f0(285.0, 179.0)
     resolution = PsychoJulia.Visual.get_resolution(screen)
-    @show resolution
+    @test resolution == Vec(1440, 900)
     xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=true)
-    @show xy
+    @test xy[1] ≈ 50.27824461344943
+    @test xy[2] ≈ 50.03247107134457
     xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=false)
-    @show xy
+    @test xy[1] ≈ 50.26548245743668
+    @test xy[2] ≈ 50.01977130017268
 end
 
 @testset "States" begin
