@@ -10,6 +10,8 @@ using Test
     @test widths ≈ Point2f0(285.0, 179.0)
     resolution = PsychoJulia.Visual.get_resolution(screen)
     @test resolution == Vec(1440, 900)
+    s = PsychoJulia.Visual.deg2mm(screen, Vec(1.0, 1.0), correctflat = false)
+    @test s ≈ [9.948376736367678, 9.948376736367678]
     xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=true)
     @test xy[1] ≈ 50.27824461344943
     @test xy[2] ≈ 50.03247107134457
