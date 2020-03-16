@@ -24,8 +24,8 @@ end
 
 PsychoSreen(scene, distance::Float64) = PsychoScreen(scene, GLFW.GetPrimaryMonitor(), distance)
 
-get_widths(screen::PsychoScreen) = GLFW.GetMonitorPhysicalSize(screen.monitor)
-get_resolution(screen::PsychoScreen) = GLFW.GetVideoMode(screen.monitor)
+get_widths(screen::PsychoScreen) = get_physical_size(screen.monitor)
+get_resolution(screen::PsychoScreen) = get_resolution(screen.monitor)
 
 function mm2px(screen::PsychoScreen{T}, xy::Tuple{Float64, Float64}) where T <: PsychoMonitor
     widths = get_physical_size(screen.monitor)
