@@ -3,6 +3,23 @@ using GeometryTypes
 using Random
 using Test
 
+@testset "Units" begin
+    fake_monitor = PsychoJulia.Visual.FakeMonitor(Vec(1440,900), (285.0, 179.0)) 
+    screen = PsychoJulia.Visual.get_screen((800,600), 570.0, fake_monitor)
+    widths = PsychoJulia.Visual.get_widths(screen)
+    @test widths ≈ Point2f0(285.0, 179.0)
+    resolution = PsychoJulia.Visual.get_resolution(screen)
+    @test resolution == Vec(1440, 900)
+    s = PsychoJulia.Visual.deg2mm(screen, Vec(1.0, 1.0), correctflat = false)
+    @test s ≈ [9.948376736367678, 9.948376736367678]
+    xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=true)
+    @test xy[1] ≈ 50.27824461344943
+    @test xy[2] ≈ 50.03247107134457
+    xy = PsychoJulia.Visual.deg2px(screen,Vec(1.0,1.0);correctflat=false)
+    @test xy[1] ≈ 50.26548245743668
+    @test xy[2] ≈ 50.01977130017268
+end
+
 @testset "States" begin
     fstate = PsychoJulia.FixationState(Rectangle(-10,-10,20,20),
                                        PsychoJulia.ClockTimer(time(), 5.0, false),Point2f0(0.0, 0.0))
@@ -19,6 +36,7 @@ using Test
     done = false
     record = PsychoJulia.ExperimentRecord()
     ntrials = 0
+    #basic experiment cycling through two correct trials
     PsychoJulia.reset!(fstate.clock)
     while !done
         state = trans.states[trans.current]
